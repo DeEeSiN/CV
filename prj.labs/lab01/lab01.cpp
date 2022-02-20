@@ -27,7 +27,7 @@ int main() {
 	G_1.convertTo(G_1, CV_8UC1, 255);
 
 	time.stop();
-	std::cout << "ï.2 = " << time.getTimeSec() << std::endl;
+	std::cout << "p.2 = " << time.getTimeSec() << std::endl;
 
 	time.reset();
 
@@ -48,7 +48,7 @@ int main() {
 		}
 	}
 	time.stop();
-	std::cout << "ï.3 = " << time.getTimeSec() << std::endl;
+	std::cout << "p.3 = " << time.getTimeSec() << std::endl;
 
 	cv::imwrite("lab012.png", G_2);
 	
