@@ -64,7 +64,7 @@ int main() {
 	cv::hconcat(start_image_jpg, monochrome_jpg[2], mosaic_jpg_top);
 	cv::hconcat(monochrome_jpg[0], monochrome_jpg[1], mosaic_jpg_bot);
 	cv::vconcat(mosaic_jpg_top, mosaic_jpg_bot, mosaic_jpg_);
-	cv::imwrite("cross_0256x0256_jpg_channels.jpg", mosaic_jpg_);
+	cv::imwrite("cross_0256x0256_jpg_channels.png", mosaic_jpg_);
 
 
 	//histogram png
@@ -136,9 +136,6 @@ int main() {
 	cv::hconcat(back_screen_png, back_screen_jpg, mosaic_jpg_bot);
 	cv::vconcat(mosaic_jpg_top, mosaic_jpg_bot, mosaic_jpg_);
 	cv::imwrite("cross_0256x0256_hists.png", mosaic_jpg_);
-
-	cv::imshow("hj", back_screen_png);
-	cv::imshow("gg", back_screen_jpg);
 
 	cv::waitKey(0);
 	
