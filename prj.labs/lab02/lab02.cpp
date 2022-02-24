@@ -43,7 +43,7 @@ int main() {
 	cv::vconcat(mosaic_png_top, mosaic_png_bot, mosaic_png_);
 	cv::imwrite("cross_0256x0256_png_channels.png", mosaic_png_);
 
-	cv::imwrite("cross_0256x0256.jpg", start_image_png, { cv::IMWRITE_JPEG_QUALITY, 100 });
+	cv::imwrite("cross_0256x0256.jpg", start_image_png, { cv::IMWRITE_JPEG_QUALITY, 25 });
 	cv::Mat start_image_jpg = cv::imread("cross_0256x0256.jpg");
 
 	cv::Mat single_channel_jpg[3]; //BGR
@@ -132,7 +132,7 @@ int main() {
 	}
 
 
-	cv::hconcat(start_image_png, start_image_png, mosaic_jpg_top);
+	cv::hconcat(start_image_png, start_image_jpg, mosaic_jpg_top);
 	cv::hconcat(back_screen_png, back_screen_jpg, mosaic_jpg_bot);
 	cv::vconcat(mosaic_jpg_top, mosaic_jpg_bot, mosaic_jpg_);
 	cv::imwrite("cross_0256x0256_hists.png", mosaic_jpg_);
