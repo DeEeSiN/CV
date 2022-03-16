@@ -1,6 +1,8 @@
 #include <opencv2/opencv.hpp>
 
-int add_video(std::string name_of_video, int threshold, int Binarizationr_type,int w1,int h1, int w2, int h2)
+
+
+int add_video(std::string name_of_video)
 {
 	//open video from the path
 	cv::VideoCapture video("../../../data/videos_lab4/" + name_of_video);
@@ -36,33 +38,27 @@ int add_video(std::string name_of_video, int threshold, int Binarizationr_type,i
 		cv::imwrite("frames/" + name_of_video + "_grayscale_" + std::to_string(i + 1) + ".png", framesGS[i]);
 
 		//binarization + saving
-		cv::threshold(framesGS[i], framesBin[i], threshold, 255, Binarizationr_type);
+		cv::threshold(framesGS[i], framesBin[i], 188, 255, cv::THRESH_BINARY);
 		cv::imwrite("frames/" + name_of_video + "_BIN_" + std::to_string(i + 1) + ".png", framesBin[i]);
 
 
 		//morphology + saving
-		cv::Mat structuring_element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(w1, h1));
+		cv::Mat structuring_element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(6,12));
 		cv::morphologyEx(framesBin[i], framesMorph[i], cv::MORPH_CLOSE, structuring_element);
 		cv::morphologyEx(framesMorph[i], framesMorph[i], cv::MORPH_OPEN, structuring_element);
 
-		structuring_element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(w2, h2));
+		structuring_element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(50, 50));
 		cv::morphologyEx(framesMorph[i], framesMorph[i], cv::MORPH_DILATE, structuring_element);
 
 		cv::imwrite("frames/" + name_of_video + "_MORPH_" + std::to_string(i + 1) + ".png", framesMorph[i]);
 
 
-	
+
 		//arrays for connecteedComponentsWithStats output
 		cv::Mat labeledImage(framesMorph[i].size(), CV_32S), stats, centroids;
 		//labeling connected components and gathering stats
 		int nLabels = cv::connectedComponentsWithStats(framesMorph[i], labeledImage, stats, centroids, 8, CV_32S);
 
-		//writing info about CCs
-		std::cout << "\nnLables: " << nLabels << "\n";
-		std::cout << name_of_video << std::endl;
-		for (int j = 0; j < nLabels; j++) {
-			std::cout << "frame: " << i + 1 << " label: " << j + 1 << " area: " << stats.at<int>(j, cv::CC_STAT_AREA) << std::endl;
-		}
 
 		//finding main connected components by area, providing it's the biggest except background
 		int max_area = 0, max_label = 1;
@@ -95,9 +91,23 @@ int add_video(std::string name_of_video, int threshold, int Binarizationr_type,i
 		}
 		cv::imwrite("frames/" + name_of_video + "_CC_" + std::to_string(i + 1) + ".png", framesCC[i]); //saving img with CCs
 
+		cv::Mat standart_mask = cv::imread("../../../data/masks_lab04/" + name_of_video + "_MASK_1.png");
+		float quality = 0;
+		for (int k = 0; k < standart_mask.rows; k++)
+		{
+			for (int j = 0; j < standart_mask.cols; j++)
+			{
+				if (standart_mask.at<uint8_t>(k, j) == framesCC[i].at<uint8_t>(k, j))
+				{
+					quality++;
+				}
+			}
+		}
+		quality = (quality / (standart_mask.rows * standart_mask.cols)) * 100;
 
+		std::cout << "Quality of " + name_of_video + " " << i + 1 << ": " << quality << std::endl;
 	}
-
+	 
 
 	cv::waitKey(0);
 	video.release();
@@ -105,10 +115,10 @@ int add_video(std::string name_of_video, int threshold, int Binarizationr_type,i
 }
 
 int main() {
-	add_video("old.MOV",115, cv::THRESH_BINARY_INV,6,10,95,95); 
-	add_video("1k.MOV", 180, cv::THRESH_BINARY,6,10,100,10);
-	add_video("5k.MOV", 90, cv::THRESH_BINARY_INV, 6, 10, 130, 155);
-	add_video("500.MOV", 150, cv::THRESH_BINARY, 6, 10, 30, 30);
-	add_video("100.mp4", 160, cv::THRESH_BINARY, 10, 15, 55, 55); 
-	
+	add_video("1000.MOV");
+	add_video("1k.MOV");
+	add_video("5k.MOV");
+	add_video("500.MOV");
+	add_video("100.mp4");
+
 }
