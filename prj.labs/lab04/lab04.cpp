@@ -38,17 +38,32 @@ int add_video(std::string name_of_video)
 		cv::imwrite("frames/" + name_of_video + "_grayscale_" + std::to_string(i + 1) + ".png", framesGS[i]);
 
 		//binarization + saving
-		cv::threshold(framesGS[i], framesBin[i], 188, 255, cv::THRESH_BINARY);
+		cv::threshold(framesGS[i], framesBin[i], 165, 255, cv::THRESH_BINARY); 
+
+		//inverting a binarization in case of high percentage of white pixels 
+		double white_pixels_percentage = 0;
+		for (int j = 0; j < framesBin[i].rows; j++) {
+			for (int k = 0; k < framesBin[i].cols; k++) {
+				if (framesBin[i].at<uint8_t>(j, k) == 255) {
+					white_pixels_percentage++;
+				}
+			}
+		}
+		white_pixels_percentage = white_pixels_percentage / (framesBin[i].rows * framesBin[i].cols) * 100;
+		if (white_pixels_percentage > 50) {
+			cv::bitwise_not(framesBin[i], framesBin[i]);
+		}
+
 		cv::imwrite("frames/" + name_of_video + "_BIN_" + std::to_string(i + 1) + ".png", framesBin[i]);
 
 
 		//morphology + saving
-		cv::Mat structuring_element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(6,12));
+		cv::Mat structuring_element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(6, 12));
 		cv::morphologyEx(framesBin[i], framesMorph[i], cv::MORPH_CLOSE, structuring_element);
 		cv::morphologyEx(framesMorph[i], framesMorph[i], cv::MORPH_OPEN, structuring_element);
 
-		structuring_element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(50, 50));
-		cv::morphologyEx(framesMorph[i], framesMorph[i], cv::MORPH_DILATE, structuring_element);
+		structuring_element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(120, 60));
+		cv::morphologyEx(framesMorph[i], framesMorph[i], cv::MORPH_CLOSE, structuring_element);
 
 		cv::imwrite("frames/" + name_of_video + "_MORPH_" + std::to_string(i + 1) + ".png", framesMorph[i]);
 
@@ -104,8 +119,35 @@ int add_video(std::string name_of_video)
 			}
 		}
 		quality = (quality / (standart_mask.rows * standart_mask.cols)) * 100;
-
+		cv::cvtColor(standart_mask, standart_mask, cv::COLOR_BGR2GRAY);
+		cv::cvtColor(framesCC[i], framesCC[i], cv::COLOR_BGR2GRAY);
 		std::cout << "Quality of " + name_of_video + " " << i + 1 << ": " << quality << std::endl;
+
+		cv::Mat mask_over_original(frames[i].size(), CV_8UC3);
+		mask_over_original = 0;
+
+		for (int j = 0; j < framesCC[i].rows; j++)
+		{
+			for (int k=0;k<framesCC[i].cols;k++)
+				if ((standart_mask.at<uint8_t>(j, k) == 0) && (framesCC[i].at<uint8_t>(j, k) == 0))
+				{
+					mask_over_original.at<cv::Vec3b>(j, k) = cv::Vec3b(0, 0, 0);
+				}
+				else if ((standart_mask.at<uint8_t>(j, k) == 0) && (framesCC[i].at<uint8_t>(j, k) == 255))
+				{
+					mask_over_original.at<cv::Vec3b>(j, k) = cv::Vec3b(0, 0, 255);
+				}
+				else if ((standart_mask.at<uint8_t>(j, k) == 255) && (framesCC[i].at<uint8_t>(j, k) == 0))
+				{
+					mask_over_original.at<cv::Vec3b>(j, k) = cv::Vec3b(255, 0, 0);
+				}
+				else if ((standart_mask.at<uint8_t>(j, k) == 255) && (framesCC[i].at<uint8_t>(j, k) == 255))
+				{
+					mask_over_original.at<cv::Vec3b>(j, k) = cv::Vec3b(255, 255, 255);
+				}
+		}
+		cv::addWeighted(frames[i], 0.5, mask_over_original, 0.5, 0.0, mask_over_original);
+		cv::imwrite("frames/" + name_of_video + "_final_" + std::to_string(i + 1) + ".png", mask_over_original); // saving final img
 	}
 	 
 
